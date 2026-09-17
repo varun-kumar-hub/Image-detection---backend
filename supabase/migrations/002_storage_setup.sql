@@ -27,8 +27,7 @@ ALTER TABLE IF EXISTS analysis_results
     ADD COLUMN IF NOT EXISTS ela_path TEXT,
     ADD COLUMN IF NOT EXISTS report_path TEXT;
 
--- 4. Enable Row Level Security on storage.objects if not already enabled
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- 4. Supabase manages RLS on storage.objects. Do not alter the protected table.
 
 -- 5. Storage RLS Policies: Authenticated Users only access their own user-scoped folder:
 -- Pattern: imageguard/{user_id}/...
