@@ -24,6 +24,7 @@ from backend.app.services.storage_service import storage_service
 from backend.app.services.supabase_service import db_service
 from backend.app.schemas.analysis import ImageMetadataInfo
 from backend.app.core.config import settings
+from backend.app.api.routes.settings import fetch_backup_settings, save_backup_evaluation
 
 router = APIRouter(prefix="", tags=["Analysis"])
 
@@ -137,13 +138,16 @@ async def analyze_image(
 
     # 10. Evaluation Comparison (Ground Truth Handling)
     # Evaluator testing mode ONLY compares after independent prediction.
-    norm_gt = ground_truth.strip().lower() if ground_truth else None
-    is_evaluation = bool(norm_gt in ("real", "ai_generated", "authentic"))
+    backup = await fetch_backup_settings(user_id) if user else {"enabled": False, "reference": None}
+    norm_gt = backup.get("reference") if backup.get("enabled") else None
+    is_evaluation = bool(norm_gt in ("real", "ai_generated"))
     is_correct = None
     if is_evaluation:
-        if norm_gt == "authentic":
-            norm_gt = "real"
-        is_correct = (prediction.classification == norm_gt)
+        is_correct = (prediction.classification == ("real" if norm_gt == "authentic" else "ai_generated"))
+        try:
+            await save_backup_evaluation(analysis_id, user_id, norm_gt, prediction.classification, prediction.ai_probability if norm_gt == "ai_generated" else prediction.real_probability)
+        except Exception as exc:
+            print(f"[BackupMode] Evaluation save skipped: {exc}", flush=True)
 
     record = {
         "id": analysis_id,
