@@ -60,10 +60,7 @@ class ExplanationService:
 
         # 2. Derive classification-specific technical explanation
         if classification == "ai_generated":
-            summary = (
-                f"The system classified this image as AI-Generated with an estimated probability "
-                f"of {ai_probability:.1f}% and {confidence} model confidence."
-            )
+            summary = "The image shows visual patterns that are more consistent with synthetic or AI-generated imagery."
             model_basis = (
                 "The EfficientNet-B0 feature extractor processed the standardized 224×224×3 pixel tensor through "
                 "its convolutional layers. The extracted high-dimensional visual feature vector aligned more strongly "
@@ -81,10 +78,7 @@ class ExplanationService:
             ]
 
         elif classification == "real":
-            summary = (
-                f"The system classified this image as Real / Authentic with an estimated probability "
-                f"of {real_probability:.1f}% and {confidence} model confidence."
-            )
+            summary = "The image shows visual patterns that are more consistent with a camera-captured photograph."
             model_basis = (
                 "The EfficientNet-B0 feature extractor transformed the image pixel values into learned visual representations. "
                 "The resulting feature vector aligned with the natural optical sensor noise, optical lens characteristics, "
@@ -102,10 +96,7 @@ class ExplanationService:
             ]
 
         else:  # needs_review
-            summary = (
-                f"The system classified this image as Needs Review because the prediction fell into the uncertain boundary "
-                f"(AI: {ai_probability:.1f}%, Real: {real_probability:.1f}%)."
-            )
+            summary = "The image contains mixed visual patterns, so the model could not make a confident classification."
             model_basis = (
                 "The EfficientNet-B0 backbone extracted features that exhibit subtle markers from both authentic and synthetic "
                 "distributions. The resulting output did not cross the decisive 55% threshold in either direction."
