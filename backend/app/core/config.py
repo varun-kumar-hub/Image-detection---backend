@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     CONFIDENCE_MEDIUM_THRESHOLD: float = 0.70
 
     # Uploads & Security
-    MAX_UPLOAD_SIZE_MB: int = 25
+    MAX_UPLOAD_SIZE_MB: int = 5
     ALLOWED_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "webp"]
 
     # CORS

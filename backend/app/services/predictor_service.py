@@ -7,6 +7,7 @@ probability, and calibrated confidence estimates.
 
 import os
 import time
+import threading
 from pathlib import Path
 from PIL import Image
 import numpy as np
@@ -23,6 +24,7 @@ class PredictorService:
         self.model: Optional[tf.keras.Model] = None
         self.model_version = "v1.0"
         self.model_name = "EfficientNet-B0"
+        self.inference_lock = threading.Lock()
         self.load_model()
 
     def load_model(self):
@@ -54,7 +56,8 @@ class PredictorService:
         tensor = load_and_preprocess_image(image)
 
         # Inference (0 -> Real, 1 -> AI-Generated)
-        raw_pred = self.model.predict(tensor, verbose=0)
+        with self.inference_lock:
+            raw_pred = self.model.predict(tensor, verbose=0)
         prob_ai = float(raw_pred[0][0])
         prob_ai = min(max(prob_ai, 0.0), 1.0)
 
@@ -127,4 +130,3 @@ class PredictorService:
 
 # Global singleton
 predictor_service = PredictorService()
-

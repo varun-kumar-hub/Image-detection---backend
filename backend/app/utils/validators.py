@@ -10,7 +10,7 @@ import io
 
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 ALLOWED_MIMES = {"image/jpeg", "image/png", "image/webp"}
-MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 MAGIC_NUMBERS = {
     b"\xff\xd8\xff": "jpeg",
@@ -59,7 +59,7 @@ async def validate_image_upload(file: UploadFile) -> bytes:
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail={
                 "code": "FILE_TOO_LARGE",
-                "message": f"File size exceeds the 25MB limit (Current: {len(contents) / (1024 * 1024):.2f}MB)."
+                "message": f"File size exceeds the 5MB limit (Current: {len(contents) / (1024 * 1024):.2f}MB)."
             }
         )
 
