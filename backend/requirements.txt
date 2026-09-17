@@ -6,6 +6,7 @@ pydantic-settings>=2.2.0
 python-multipart>=0.0.9
 httpx>=0.27.0
 python-dotenv>=1.0.0
+cryptography>=42.0.0
 
 # Database, Auth & Storage
 supabase>=2.3.0

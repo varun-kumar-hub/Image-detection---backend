@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     SUPABASE_BUCKET_REPORTS: str = "imageguard"
     SUPABASE_STORAGE_BUCKET: str = "imageguard"
     SIGNED_URL_EXPIRES_IN: int = 3600  # 1 hour validity
+    GEMINI_USER_KEY_ENCRYPTION_SECRET: str = ""
+    GEMINI_MODEL: str = "gemini-2.5-flash"
 
     # ML Model Configuration
     MODEL_PATH: str = "models/image_detection_v1.keras"
