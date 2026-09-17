@@ -187,9 +187,10 @@ async def analyze_image(
             detail={"code": "PERSISTENCE_ERROR", "message": f"Failed to save analysis record: {e}"}
         )
 
+    public_record = {key: value for key, value in record.items() if key not in {"ground_truth", "is_evaluation", "is_correct"}}
     return {
         "success": True,
-        "data": record
+        "data": public_record
     }
 
 @router.get("/results/{analysis_id}")
