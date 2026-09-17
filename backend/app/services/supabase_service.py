@@ -129,9 +129,21 @@ class DatabaseService:
                 async with httpx.AsyncClient(timeout=10.0) as client:
                     resp = await client.post(rest_url, headers=self._get_supabase_headers(), json=payload)
                     if resp.status_code not in (200, 201):
-                        logger.warning(f"[DatabaseService] Supabase insert warning ({resp.status_code}): {resp.text}")
+                        logger.error(
+                            "[ANALYSIS PERSISTENCE] database_insert=FAILED user_id=%s analysis_id=%s status=%s error=%s",
+                            clean_user_id, record.get("id"), resp.status_code, resp.text[:500]
+                        )
+                        raise RuntimeError(f"Supabase insert failed ({resp.status_code}): {resp.text[:500]}")
+                    logger.info(
+                        "[ANALYSIS PERSISTENCE] database_insert=SUCCESS user_id=%s analysis_id=%s classification=%s prediction=%s",
+                        clean_user_id, record.get("id"), record.get("classification"), record.get("ai_probability")
+                    )
             except Exception as e:
-                logger.error(f"[DatabaseService] Supabase insert failed: {e}")
+                logger.error(
+                    "[ANALYSIS PERSISTENCE] database_insert=FAILED user_id=%s analysis_id=%s error=%s",
+                    clean_user_id, record.get("id"), str(e)[:500]
+                )
+                raise
 
         # 2. Local SQLite persistence (guaranteed backup & offline support)
         with sqlite3.connect(LOCAL_DB_PATH) as conn:

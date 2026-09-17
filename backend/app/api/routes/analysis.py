@@ -38,10 +38,10 @@ async def analyze_image(
     file: Optional[UploadFile] = File(None),
     upload_id: Optional[str] = Form(None),
     ground_truth: Optional[str] = Form(None),
-    user: Optional[AuthenticatedUser] = Depends(get_optional_current_user)
+    user: AuthenticatedUser = Depends(get_current_user)
 ):
     start_time = time.time()
-    user_id = user.id if user else "anonymous"
+    user_id = user.id
 
     # 1. Obtain image bytes and validate
     if file:
@@ -138,7 +138,7 @@ async def analyze_image(
 
     # 10. Evaluation Comparison (Ground Truth Handling)
     # Evaluator testing mode ONLY compares after independent prediction.
-    backup = await fetch_backup_settings(user_id) if user else {"enabled": False, "reference": None}
+    backup = await fetch_backup_settings(user_id)
     norm_gt = backup.get("reference") if backup.get("enabled") else None
     is_evaluation = bool(norm_gt in ("real", "ai_generated"))
     is_correct = None
