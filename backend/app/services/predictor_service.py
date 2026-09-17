@@ -14,8 +14,6 @@ import numpy as np
 from typing import Dict, Any, Optional
 import tensorflow as tf
 
-# Render's free instances have limited RAM and CPU. Avoid TensorFlow creating
-# large thread pools that compete with the model and request processing.
 tf.config.threading.set_intra_op_parallelism_threads(1)
 tf.config.threading.set_inter_op_parallelism_threads(1)
 
