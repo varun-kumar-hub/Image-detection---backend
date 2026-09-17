@@ -201,6 +201,8 @@ async def get_result(
     user_id = user.id if user else None
     record = db_service.get_analysis_by_id(analysis_id, user_id=user_id)
     if not record:
+        record = await db_service.get_analysis_by_id_remote(analysis_id, user_id=user_id)
+    if not record:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "NOT_FOUND", "message": f"Analysis result with ID '{analysis_id}' was not found."}

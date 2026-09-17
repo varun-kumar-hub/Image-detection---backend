@@ -85,12 +85,21 @@ class DatabaseService:
         if self.is_supabase_configured():
             rest_url = f"{settings.SUPABASE_URL.rstrip('/')}/rest/v1/analysis_results"
             payload: Dict[str, Any] = {
+                "analysis_key": record.get("id"),
                 "classification": record["classification"],
                 "ai_probability": record["ai_probability"],
                 "real_probability": record["real_probability"],
                 "confidence": record["confidence"],
                 "processing_time_ms": record["processing_time_ms"],
                 "model_version": record.get("model_version", "v1.0"),
+                "storage_path": record.get("storage_path"),
+                "filename": record.get("filename"),
+                "confidence_explanation": record.get("confidence_explanation", ""),
+                "model_name": record.get("model_name", "EfficientNet-B0"),
+                "image_info": record.get("image_info", {}),
+                "manipulation": record.get("manipulation", {}),
+                "explanation": record.get("explanation", {}),
+                "gradcam": record.get("gradcam", {}),
             }
             try:
                 import uuid as _uuid
@@ -186,6 +195,44 @@ class DatabaseService:
             data["is_evaluation"] = bool(data.get("is_evaluation"))
             data["is_correct"] = True if data.get("is_correct") == 1 else False if data.get("is_correct") == 0 else None
             return data
+
+    async def get_analysis_by_id_remote(self, analysis_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        if not self.is_supabase_configured() or not user_id:
+            return None
+        try:
+            rest_url = f"{settings.SUPABASE_URL.rstrip('/')}/rest/v1/analysis_results"
+            params = {"analysis_key": f"eq.{analysis_id}", "user_id": f"eq.{user_id}", "limit": "1"}
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(rest_url, headers=self._get_supabase_headers(), params=params)
+                response.raise_for_status()
+                rows = response.json()
+            if not rows:
+                return None
+            row = rows[0]
+            return {
+                "id": row.get("analysis_key") or row.get("id"),
+                "user_id": row.get("user_id"),
+                "storage_path": row.get("storage_path"),
+                "filename": row.get("filename") or "image.jpg",
+                "classification": row.get("classification"),
+                "ai_probability": float(row.get("ai_probability", 0)),
+                "real_probability": float(row.get("real_probability", 0)),
+                "confidence": row.get("confidence", "low"),
+                "confidence_explanation": row.get("confidence_explanation", ""),
+                "processing_time_ms": row.get("processing_time_ms", 0),
+                "model_name": row.get("model_name", "EfficientNet-B0"),
+                "model_version": row.get("model_version", "v1.0"),
+                "created_at": row.get("created_at"),
+                "image_info": row.get("image_info") or {},
+                "manipulation": row.get("manipulation") or {},
+                "explanation": row.get("explanation") or {},
+                "gradcam": row.get("gradcam") or {},
+                "is_evaluation": False,
+                "is_correct": None,
+            }
+        except Exception as exc:
+            logger.warning(f"[DatabaseService] Supabase result read failed: {exc}")
+            return None
 
     async def list_analyses(
         self,
