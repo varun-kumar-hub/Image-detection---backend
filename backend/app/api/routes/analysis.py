@@ -6,6 +6,7 @@ and structured evidence-based explanations with user authorization.
 """
 
 import time
+import asyncio
 import io
 import uuid
 from datetime import datetime
@@ -66,13 +67,23 @@ async def analyze_image(
 
     # 3. Model Prediction (COMPLETELY INDEPENDENT OF GROUND TRUTH)
     # The ground truth is NEVER sent into the model or used to influence prediction.
-    prediction = predictor_service.predict(pil_image)
+    print(f"[Analyze] Starting prediction for {orig_filename}", flush=True)
+    prediction = await asyncio.to_thread(predictor_service.predict, pil_image)
+    print("[Analyze] Prediction complete", flush=True)
 
     # 4. Supporting Image Analysis (EXIF, ELA, Noise)
-    supporting_analysis = image_analysis_service.analyze_image(pil_image)
+    supporting_analysis = await asyncio.to_thread(image_analysis_service.analyze_image, pil_image)
+    print("[Analyze] Supporting analysis complete", flush=True)
 
     # 5. Model Explainability (Grad-CAM)
-    gradcam_result = predictor_service.explain(pil_image)
+    if settings.ENABLE_GRADCAM:
+        gradcam_result = await asyncio.to_thread(predictor_service.explain, pil_image)
+        print("[Analyze] Grad-CAM complete", flush=True)
+    else:
+        gradcam_result = {
+            "available": False,
+            "description": "Grad-CAM is disabled for this deployment to keep analysis responsive."
+        }
     has_gradcam = bool(gradcam_result.get("available") and gradcam_result.get("overlay_base64"))
 
     # 6. Generate IDs and save to private Supabase Storage

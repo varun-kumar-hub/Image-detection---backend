@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     # ML Model Configuration
     MODEL_PATH: str = "models/image_detection_v1.keras"
+    ENABLE_GRADCAM: bool = False
     MODEL_VERSION: str = "v1.0"
     CONFIDENCE_HIGH_THRESHOLD: float = 0.90
     CONFIDENCE_MEDIUM_THRESHOLD: float = 0.70
