@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS public.backup_settings (
 
 CREATE TABLE IF NOT EXISTS public.backup_evaluations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    analysis_id UUID,
+    analysis_id TEXT,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     reference_label TEXT NOT NULL CHECK (reference_label IN ('authentic', 'ai_generated')),
     model_prediction TEXT NOT NULL CHECK (model_prediction IN ('real', 'ai_generated', 'needs_review')),
