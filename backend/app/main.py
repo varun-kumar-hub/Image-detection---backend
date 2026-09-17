@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 
 from backend.app.core.config import settings
-from backend.app.api.routes import health, upload, analysis, history, reports, storage, settings
+from backend.app.api.routes import health, upload, analysis, history, reports, storage, settings as backup_settings
 from backend.app.services.predictor_service import predictor_service
 
 @asynccontextmanager
@@ -84,7 +84,7 @@ app.include_router(analysis.router, prefix=settings.API_PREFIX)
 app.include_router(history.router, prefix=settings.API_PREFIX)
 app.include_router(reports.router, prefix=settings.API_PREFIX)
 app.include_router(storage.router, prefix=settings.API_PREFIX)
-app.include_router(settings.router, prefix=settings.API_PREFIX)
+app.include_router(backup_settings.router, prefix=settings.API_PREFIX)
 
 @app.get("/")
 async def root():
