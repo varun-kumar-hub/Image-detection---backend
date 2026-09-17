@@ -187,7 +187,7 @@ class DatabaseService:
             data["is_correct"] = True if data.get("is_correct") == 1 else False if data.get("is_correct") == 0 else None
             return data
 
-    def list_analyses(
+    async def list_analyses(
         self,
         user_id: Optional[str] = None,
         page: int = 1,
@@ -198,6 +198,40 @@ class DatabaseService:
         Lists analysis records strictly isolated for the user.
         User A will NEVER see User B's records.
         """
+        if self.is_supabase_configured():
+            try:
+                rest_url = f"{settings.SUPABASE_URL.rstrip('/')}/rest/v1/analysis_results"
+                params = {
+                    "select": "*",
+                    "user_id": f"eq.{user_id}",
+                    "order": "created_at.desc",
+                    "limit": str(limit),
+                    "offset": str((page - 1) * limit),
+                }
+                if classification:
+                    params["classification"] = f"eq.{classification}"
+                headers = self._get_supabase_headers()
+                headers["Prefer"] = "count=exact"
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    resp = await client.get(rest_url, headers=headers, params=params)
+                    resp.raise_for_status()
+                    rows = resp.json()
+                    content_range = resp.headers.get("content-range", "*/0")
+                    total = int(content_range.split("/")[-1]) if "/" in content_range and content_range.split("/")[-1] != "*" else len(rows)
+                    items = []
+                    for row in rows:
+                        items.append({
+                            **row,
+                            "image_info": {"filename": row.get("filename", "image.jpg")},
+                            "manipulation": {},
+                            "explanation": {},
+                            "is_evaluation": False,
+                            "is_correct": None,
+                        })
+                    return {"total": total, "page": page, "limit": limit, "items": items}
+            except Exception as e:
+                logger.warning(f"[DatabaseService] Supabase history read failed; using local fallback: {e}")
+
         offset = (page - 1) * limit
         with sqlite3.connect(LOCAL_DB_PATH) as conn:
             conn.row_factory = sqlite3.Row

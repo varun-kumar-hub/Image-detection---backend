@@ -22,7 +22,7 @@ async def get_history(
     classification: Optional[str] = Query(None),
     user: AuthenticatedUser = Depends(get_current_user)
 ):
-    history_data = db_service.list_analyses(
+    history_data = await db_service.list_analyses(
         user_id=user.id,
         page=page,
         limit=limit,
