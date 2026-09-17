@@ -46,6 +46,18 @@ class DatabaseService:
                     created_at TEXT
                 )
             """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS uploads (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    filename TEXT NOT NULL,
+                    storage_path TEXT NOT NULL,
+                    file_size INTEGER NOT NULL,
+                    mime_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+            """)
             # Check if columns exist (for existing databases)
             cursor = conn.cursor()
             cursor.execute("PRAGMA table_info(analysis_records)")
@@ -178,6 +190,41 @@ class DatabaseService:
             conn.commit()
 
         return record
+
+    async def save_upload(
+        self,
+        upload_id: str,
+        user_id: str,
+        filename: str,
+        storage_path: str,
+        file_size: int,
+        mime_type: str,
+    ) -> None:
+        """Create the parent upload row required by analysis_results.upload_id."""
+        payload = {
+            "id": upload_id,
+            "user_id": user_id,
+            "filename": filename,
+            "storage_path": storage_path,
+            "file_size": file_size,
+            "mime_type": mime_type,
+            "status": "completed",
+        }
+        if self.is_supabase_configured():
+            rest_url = f"{settings.SUPABASE_URL.rstrip('/')}/rest/v1/uploads"
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(rest_url, headers=self._get_supabase_headers(), json=payload)
+                if response.status_code not in (200, 201):
+                    logger.error("[ANALYSIS PERSISTENCE] upload_insert=FAILED user_id=%s upload_id=%s error=%s", user_id, upload_id, response.text[:500])
+                    raise RuntimeError(f"Supabase upload record failed ({response.status_code}): {response.text[:500]}")
+            logger.info("[ANALYSIS PERSISTENCE] upload_insert=SUCCESS user_id=%s upload_id=%s", user_id, upload_id)
+
+        with sqlite3.connect(LOCAL_DB_PATH) as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO uploads (id, user_id, filename, storage_path, file_size, mime_type, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (upload_id, user_id, filename, storage_path, file_size, mime_type, "completed", datetime.utcnow().isoformat()),
+            )
+            conn.commit()
 
     def get_analysis_by_id(self, analysis_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """

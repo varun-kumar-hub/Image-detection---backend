@@ -109,6 +109,22 @@ async def analyze_image(
             detail={"code": "STORAGE_ERROR", "message": f"Failed to persist image to secure storage: {err}"}
         )
 
+    try:
+        await db_service.save_upload(
+            upload_id=upload_uid,
+            user_id=user_id,
+            filename=orig_filename,
+            storage_path=storage_path,
+            file_size=len(image_bytes),
+            mime_type=content_type,
+        )
+    except Exception as err:
+        await storage_service.delete_file(storage_path)
+        raise HTTPException(
+            status_code=500,
+            detail={"code": "PERSISTENCE_ERROR", "message": f"Failed to save upload record: {err}"}
+        )
+
     # 7. Generate temporary signed URL for immediate display
     signed_image_url = await storage_service.create_signed_url(storage_path)
 
