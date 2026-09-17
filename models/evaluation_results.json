@@ -1,0 +1,22 @@
+{
+  "dataset": "Untouched Hold-Out Test Set",
+  "total_test_samples": 2642,
+  "test_real_count": 1321,
+  "test_fake_count": 1321,
+  "metrics": {
+    "accuracy": 61.73,
+    "precision": 60.29,
+    "recall": 68.74,
+    "specificity": 54.73,
+    "f1_score": 64.24,
+    "auc_roc": 0.6885,
+    "false_positive_rate": 45.27,
+    "false_negative_rate": 31.26
+  },
+  "confusion_matrix": {
+    "true_negatives": 723,
+    "false_positives": 598,
+    "false_negatives": 413,
+    "true_positives": 908
+  }
+}

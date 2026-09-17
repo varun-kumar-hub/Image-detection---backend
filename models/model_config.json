@@ -1,0 +1,28 @@
+{
+  "model_name": "ImageGuard",
+  "model_version": "1.0",
+  "architecture": "EfficientNet-B0",
+  "input_size": [
+    224,
+    224,
+    3
+  ],
+  "classes": [
+    "real",
+    "ai_generated"
+  ],
+  "class_mapping": {
+    "0": "real",
+    "1": "ai_generated"
+  },
+  "threshold_ai": 0.55,
+  "threshold_real": 0.45,
+  "training": {
+    "epochs_requested": 3,
+    "epochs_completed": 3,
+    "batch_size": 32,
+    "learning_rate": 0.0001,
+    "best_val_auc": 0.6844326853752136,
+    "best_val_accuracy": 0.6128787994384766
+  }
+}

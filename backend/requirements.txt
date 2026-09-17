@@ -1,0 +1,26 @@
+# FastAPI Backend & Core Services
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
+httpx>=0.27.0
+python-dotenv>=1.0.0
+
+# Database, Auth & Storage
+supabase>=2.3.0
+gotrue>=2.3.0
+
+# Machine Learning & Forensics
+tensorflow>=2.15.0
+pillow>=10.2.0
+opencv-python-headless>=4.9.0
+numpy>=1.26.0
+pandas>=2.2.0
+scikit-learn>=1.4.0
+
+# PDF Report Generation
+reportlab>=4.1.0
+
+# Development & Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
