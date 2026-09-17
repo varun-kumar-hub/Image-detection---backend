@@ -40,7 +40,7 @@ import matplotlib.pyplot as plt
 
 def evaluate_model(
     model_path: str = "models/image_detection_v1.keras",
-    test_dir: str = "data/processed/test",
+    test_dir: str = "data/data/processed/test",
     output_dir: str = "models"
 ):
     model_file = Path(model_path).resolve()
@@ -221,7 +221,7 @@ def evaluate_model(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate ImageGuard on hold-out test set.")
     parser.add_argument("--model", type=str, default="models/image_detection_v1.keras")
-    parser.add_argument("--test-dir", type=str, default="data/processed/test")
+    parser.add_argument("--test-dir", type=str, default="data/data/processed/test")
     parser.add_argument("--output-dir", type=str, default="models")
     args = parser.parse_args()
 

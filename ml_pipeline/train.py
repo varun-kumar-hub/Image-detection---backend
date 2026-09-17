@@ -88,8 +88,8 @@ def get_datasets(
     return train_ds, val_ds
 
 def train(
-    train_dir: str = "data/processed/train",
-    val_dir: str = "data/processed/validation",
+    train_dir: str = "data/data/processed/train",
+    val_dir: str = "data/data/processed/validation",
     output_model_path: str = "models/image_detection_v1.keras",
     variant: str = "B0",
     epochs: int = 10,
@@ -211,8 +211,8 @@ def train(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train EfficientNet on balanced Real vs AI dataset.")
-    parser.add_argument("--train-dir", type=str, default="data/processed/train")
-    parser.add_argument("--val-dir", type=str, default="data/processed/validation")
+    parser.add_argument("--train-dir", type=str, default="data/data/processed/train")
+    parser.add_argument("--val-dir", type=str, default="data/data/processed/validation")
     parser.add_argument("--output", type=str, default="models/image_detection_v1.keras")
     parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs")
     parser.add_argument("--batch-size", type=int, default=32, help="Batch size")

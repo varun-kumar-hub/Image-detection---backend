@@ -27,8 +27,8 @@ from pathlib import Path
 RANDOM_SEED = 42
 
 def prepare_balanced_dataset(
-    data_dir: str = "data",
-    processed_dir: str = "data/processed",
+    data_dir: str = "data/data",
+    processed_dir: str = "data/data/processed",
     target_real_count: int = 8803,
     target_fake_count: int = 8803
 ):
@@ -130,7 +130,10 @@ def prepare_balanced_dataset(
             for src_file in file_list:
                 dest_file = dest_dir / src_file.name
                 if not dest_file.exists():
-                    shutil.copy2(src_file, dest_file)
+                    try:
+                        os.link(src_file, dest_file)
+                    except OSError:
+                        shutil.copy2(src_file, dest_file)
 
     # 6. Generate Dataset Split Report
     print("\n[5/5] Generating dataset report...")
