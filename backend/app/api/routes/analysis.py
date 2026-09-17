@@ -60,7 +60,8 @@ async def analyze_image(
         pil_image = Image.open(io.BytesIO(image_bytes))
         pil_image.verify()
         pil_image = Image.open(io.BytesIO(image_bytes))
-        pil_image.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+        # Keep feature extraction and supporting analysis bounded on small hosts.
+        pil_image.thumbnail((512, 512), Image.Resampling.LANCZOS)
     except Exception:
         raise HTTPException(
             status_code=400,

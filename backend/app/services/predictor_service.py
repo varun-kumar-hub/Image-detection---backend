@@ -14,6 +14,11 @@ import numpy as np
 from typing import Dict, Any, Optional
 import tensorflow as tf
 
+# Render's free instances have limited RAM and CPU. Avoid TensorFlow creating
+# large thread pools that compete with the model and request processing.
+tf.config.threading.set_intra_op_parallelism_threads(1)
+tf.config.threading.set_inter_op_parallelism_threads(1)
+
 from ml_pipeline.preprocessing import load_and_preprocess_image
 from ml_pipeline.model_builder import build_efficientnet_model
 from backend.app.schemas.analysis import PredictorResult
