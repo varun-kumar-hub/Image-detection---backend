@@ -62,12 +62,12 @@ class ExplanationService:
         if classification == "ai_generated":
             summary = "The image shows visual patterns that are more consistent with synthetic or AI-generated imagery."
             model_basis = (
-                "The EfficientNet-B0 feature extractor processed the standardized 224×224×3 pixel tensor through "
+                "The feature extractor processed the standardized pixel tensor through "
                 "its convolutional layers. The extracted high-dimensional visual feature vector aligned more strongly "
                 "with the statistical representations learned from AI-synthesized images during balanced model training."
             )
             primary_factors = [
-                f"Model output probability strongly favors the AI-generated class ({ai_probability:.1f}% vs {real_probability:.1f}% authentic).",
+                f"Model output probability strongly favors the AI-generated class ({ai_probability:.1f}% vs {real_probability:.1f}% real).",
                 "Learned feature representations correspond to texture and frequency characteristics typical of generative AI distributions.",
                 "Supporting image analysis indicators corroborate statistical deviation from standard optical camera sensors."
             ]
@@ -80,25 +80,25 @@ class ExplanationService:
         elif classification == "real":
             summary = "The image shows visual patterns that are more consistent with a camera-captured photograph."
             model_basis = (
-                "The EfficientNet-B0 feature extractor transformed the image pixel values into learned visual representations. "
+                "The feature extractor transformed the image pixel values into learned visual representations. "
                 "The resulting feature vector aligned with the natural optical sensor noise, optical lens characteristics, "
-                "and coherent high-frequency details learned from authentic camera captures."
+                "and coherent high-frequency details learned from real camera captures."
             )
             primary_factors = [
-                f"Model output probability strongly favors the authentic class ({real_probability:.1f}% vs {ai_probability:.1f}% AI-generated).",
+                f"Model output probability strongly favors the real class ({real_probability:.1f}% vs {ai_probability:.1f}% AI-generated).",
                 "Visual representations exhibit coherent high-frequency consistency characteristic of physical camera sensors.",
                 "No decisive statistical markers of generative synthesis were detected in the learned feature vector."
             ]
             limitations = [
-                "Classification reflects resemblance to the model's authentic training distribution and is not absolute proof of origin.",
-                "State-of-the-art generative models with fine-grained post-processing may occasionally mimic authentic sensor noise.",
+                "Classification reflects resemblance to the model's real training distribution and is not absolute proof of origin.",
+                "State-of-the-art generative models with fine-grained post-processing may occasionally mimic real sensor noise.",
                 "Assessment should be corroborated with provenance."
             ]
 
         else:  # needs_review
             summary = "The image contains mixed visual patterns, so the model could not make a confident classification."
             model_basis = (
-                "The EfficientNet-B0 backbone extracted features that exhibit subtle markers from both authentic and synthetic "
+                "The model extracted features that exhibit subtle markers from both real and synthetic "
                 "distributions. The resulting output did not cross the decisive 55% threshold in either direction."
             )
             primary_factors = [

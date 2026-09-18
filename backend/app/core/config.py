@@ -37,6 +37,7 @@ class Settings(BaseSettings):
 
     # CORS
     CORS_ORIGINS: List[str] = [
+        "https://image-detection4.vercel.app",
         "https://image-detection-frontend-wine.vercel.app",
         "http://localhost:5173",
         "http://localhost:3000",

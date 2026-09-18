@@ -18,7 +18,7 @@ from backend.app.core.config import settings
 
 logger = logging.getLogger(__name__)
 IMAGE_SIZE = 32
-CLASS_LABELS = ("AI-Generated (FAKE)", "Real Photo (REAL)")
+CLASS_LABELS = ("Real", "AI-Generated")
 
 
 class NonLinearCurveResidualBlock(nn.Module):
@@ -50,10 +50,12 @@ class HolisticParameterCurveFittingCNN(nn.Module):
         return self.classifier(functional.adaptive_avg_pool2d(outputs, (8, 8)))
 
 
-def _normalize_feature_plane(values: np.ndarray) -> np.ndarray:
-    result = np.empty_like(values, dtype=np.float32)
-    cv2.normalize(values, result, 0.0, 1.0, cv2.NORM_MINMAX, dtype=cv2.CV_32F)
-    return result
+def _min_max_normalize(values: np.ndarray) -> np.ndarray:
+    minimum, maximum = float(values.min()), float(values.max())
+    span = maximum - minimum
+    if span <= np.finfo(np.float32).eps:
+        return np.zeros_like(values, dtype=np.float32)
+    return ((values - minimum) / span).astype(np.float32)
 
 
 def extract_seven_channel_features(raw_image_bytes: bytes) -> np.ndarray:
@@ -75,10 +77,13 @@ def extract_seven_channel_features(raw_image_bytes: bytes) -> np.ndarray:
     rgb = cv2.resize(rgb, (IMAGE_SIZE, IMAGE_SIZE), interpolation=cv2.INTER_AREA)
     scale = np.iinfo(rgb.dtype).max if np.issubdtype(rgb.dtype, np.integer) else 1.0
     rgb = np.clip(rgb.astype(np.float32) / scale, 0.0, 1.0)
-    texture = np.stack([_normalize_feature_plane(cv2.Laplacian(rgb[:, :, index], cv2.CV_32F, ksize=3)) for index in range(3)], axis=-1)
+    texture = np.stack(
+        [_min_max_normalize(np.abs(cv2.Laplacian(rgb[:, :, index], cv2.CV_32F, ksize=3))) for index in range(3)],
+        axis=-1,
+    )
     grayscale = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
     spectrum = np.log1p(np.abs(np.fft.fftshift(np.fft.fft2(grayscale)))).astype(np.float32)
-    frequency = _normalize_feature_plane(spectrum)[..., np.newaxis]
+    frequency = _min_max_normalize(spectrum)[..., np.newaxis]
     features = np.concatenate((rgb, texture, frequency), axis=-1)
     if features.shape != (IMAGE_SIZE, IMAGE_SIZE, 7) or not np.isfinite(features).all():
         raise ValueError("Unable to construct a finite 7-channel feature matrix.")
@@ -152,11 +157,11 @@ class PredictorService:
         with self._inference_lock, torch.no_grad():
             probabilities = torch.softmax(self.model(inputs), dim=1)[0].detach().cpu().numpy()
         class_index = int(np.argmax(probabilities))
-        fake_probability, real_probability = float(probabilities[0]), float(probabilities[1])
+        real_probability, fake_probability = float(probabilities[0]), float(probabilities[1])
         confidence_percentage = float(probabilities[class_index] * 100.0)
         return {
             "success": True,
-            "classification": "ai_generated" if class_index == 0 else "real",
+            "classification": "real" if class_index == 0 else "ai_generated",
             "prediction_label": CLASS_LABELS[class_index],
             "class_index": class_index,
             "confidence": "high" if confidence_percentage >= 90 else "medium" if confidence_percentage >= 70 else "low",

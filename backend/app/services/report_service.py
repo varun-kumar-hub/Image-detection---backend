@@ -92,7 +92,7 @@ class ReportService:
 
         # 1. Header
         story.append(Paragraph("IMAGE DETECTION REPORT", self.title_style))
-        story.append(Paragraph("Real vs AI-Generated Image Authenticity & Detection Summary", self.subtitle_style))
+        story.append(Paragraph("Real vs AI-Generated Image Detection Summary", self.subtitle_style))
         story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#E2E8F0"), spaceAfter=14))
 
         # Metadata Header Table
@@ -219,7 +219,7 @@ class ReportService:
         else:
             basis_text = analysis_data.get(
                 "interpretation",
-                "The EfficientNet-B0 model processed the image tensor and mapped it to learned representations of authentic camera vs AI-synthesized distributions."
+                "The model processed the image tensor and mapped it to learned representations of real camera vs AI-synthesized distributions."
             )
         story.append(Paragraph(basis_text, self.body_style))
         story.append(Spacer(1, 10))

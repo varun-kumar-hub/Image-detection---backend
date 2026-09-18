@@ -9,7 +9,7 @@ from datetime import datetime
 class PredictorResult(BaseModel):
     classification: str = Field(..., description="'real', 'ai_generated', or 'needs_review'")
     ai_probability: float = Field(..., ge=0.0, le=100.0, description="Probability that the image is AI-generated (0-100)")
-    real_probability: float = Field(..., ge=0.0, le=100.0, description="Probability that the image is authentic (0-100)")
+    real_probability: float = Field(..., ge=0.0, le=100.0, description="Probability that the image is real (0-100)")
     confidence: str = Field(..., description="'high', 'medium', or 'low'")
     confidence_explanation: str = Field(..., description="Human-readable confidence explanation")
 
