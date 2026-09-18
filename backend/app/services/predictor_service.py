@@ -98,6 +98,7 @@ class PredictorService:
             self.model_path = configured_model_path
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model: HolisticParameterCurveFittingCNN | None = None
+        self.load_error: str | None = None
         self.model_name = "HolisticParameterCurveFittingCNN"
         self.model_version = "custom-fused-parameter-v1"
         self._inference_lock = threading.Lock()
@@ -105,7 +106,8 @@ class PredictorService:
 
     def load_model(self) -> None:
         if not self.model_path.is_file():
-            logger.error("Custom model weights were not found at %s", self.model_path)
+            self.load_error = f"Model weights were not found at {self.model_path}"
+            logger.error(self.load_error)
             self.model = None
             return
         try:
@@ -116,8 +118,10 @@ class PredictorService:
             model = HolisticParameterCurveFittingCNN().to(self.device)
             model.load_state_dict(self._extract_state_dict(checkpoint), strict=True)
             self.model = model.eval()
+            self.load_error = None
             logger.info("Loaded custom 7-channel model on %s", self.device.type)
         except (OSError, RuntimeError, ValueError, TypeError, EOFError) as error:
+            self.load_error = str(error)
             logger.exception("Unable to load custom model weights: %s", error)
             self.model = None
 
@@ -139,7 +143,11 @@ class PredictorService:
 
     def _predict_sync(self, raw_image_bytes: bytes) -> dict[str, Any]:
         if self.model is None:
-            raise RuntimeError("The custom PyTorch model is unavailable.")
+            logger.warning("Model was unavailable during prediction; retrying model load.")
+            self.load_model()
+        if self.model is None:
+            message = self.load_error or "The custom PyTorch model is unavailable."
+            raise RuntimeError(message)
         inputs = torch.from_numpy(extract_seven_channel_features(raw_image_bytes)).unsqueeze(0).to(self.device)
         with self._inference_lock, torch.no_grad():
             probabilities = torch.softmax(self.model(inputs), dim=1)[0].detach().cpu().numpy()

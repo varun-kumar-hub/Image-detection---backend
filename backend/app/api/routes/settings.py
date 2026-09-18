@@ -22,8 +22,11 @@ def _headers() -> dict:
 
 async def fetch_backup_settings(user_id: str) -> dict:
     url = f"{settings.SUPABASE_URL.rstrip('/')}/rest/v1/backup_settings"
-    async with httpx.AsyncClient(timeout=8.0) as client:
-        response = await client.get(url, headers=_headers(), params={"user_id": f"eq.{user_id}", "select": "enabled,reference_label"})
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            response = await client.get(url, headers=_headers(), params={"user_id": f"eq.{user_id}", "select": "enabled,reference_label"})
+    except httpx.HTTPError:
+        return {"enabled": False, "reference": None}
     if response.status_code not in (200, 206):
         return {"enabled": False, "reference": None}
     rows = response.json()

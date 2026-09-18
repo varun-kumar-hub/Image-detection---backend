@@ -79,7 +79,7 @@ async def analyze_image(
         print("[Analyze] Feature representation analysis complete", flush=True)
     except RuntimeError as error:
         logger.exception("Model inference is unavailable")
-        raise HTTPException(status_code=503, detail={"code": "MODEL_UNAVAILABLE", "message": "The image classification model is temporarily unavailable. Please retry shortly."}) from error
+        raise HTTPException(status_code=503, detail={"code": "MODEL_UNAVAILABLE", "message": "The image classification model could not be loaded on the server. Check the Render deployment logs or /api/health for model_load_error."}) from error
     except ValueError as error:
         raise HTTPException(status_code=422, detail={"code": "INVALID_IMAGE", "message": str(error)}) from error
 

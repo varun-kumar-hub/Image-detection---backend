@@ -22,3 +22,4 @@ class HealthResponse(BaseModel):
     model_loaded: bool
     model_version: str
     supported_formats: list[str]
+    model_load_error: Optional[str] = None

@@ -15,5 +15,6 @@ async def health_check():
         status="healthy",
         model_loaded=predictor_service.is_loaded(),
         model_version=predictor_service.model_version,
-        supported_formats=settings.ALLOWED_EXTENSIONS
+        supported_formats=settings.ALLOWED_EXTENSIONS,
+        model_load_error=predictor_service.load_error,
     )

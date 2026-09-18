@@ -149,17 +149,17 @@ class DatabaseService:
                             "[ANALYSIS PERSISTENCE] database_insert=FAILED user_id=%s analysis_id=%s status=%s error=%s",
                             clean_user_id, record.get("id"), resp.status_code, resp.text[:500]
                         )
-                        raise RuntimeError(f"Supabase insert failed ({resp.status_code}): {resp.text[:500]}")
-                    logger.info(
-                        "[ANALYSIS PERSISTENCE] database_insert=SUCCESS user_id=%s analysis_id=%s classification=%s prediction=%s",
-                        clean_user_id, record.get("id"), record.get("classification"), record.get("ai_probability")
-                    )
+                        logger.warning("Analysis will remain available from local persistence until Supabase is fixed.")
+                    else:
+                        logger.info(
+                            "[ANALYSIS PERSISTENCE] database_insert=SUCCESS user_id=%s analysis_id=%s classification=%s prediction=%s",
+                            clean_user_id, record.get("id"), record.get("classification"), record.get("ai_probability")
+                        )
             except Exception as e:
                 logger.error(
-                    "[ANALYSIS PERSISTENCE] database_insert=FAILED user_id=%s analysis_id=%s error=%s",
+                    "[ANALYSIS PERSISTENCE] database_insert=FAILED; using local persistence user_id=%s analysis_id=%s error=%s",
                     clean_user_id, record.get("id"), str(e)[:500]
                 )
-                raise
 
         # 2. Local SQLite persistence (guaranteed backup & offline support)
         with sqlite3.connect(LOCAL_DB_PATH) as conn:
@@ -217,12 +217,15 @@ class DatabaseService:
         }
         if self.is_supabase_configured():
             rest_url = f"{settings.SUPABASE_URL.rstrip('/')}/rest/v1/uploads"
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.post(rest_url, headers=self._get_supabase_headers(), json=payload)
+            try:
+                async with httpx.AsyncClient(timeout=10.0) as client:
+                    response = await client.post(rest_url, headers=self._get_supabase_headers(), json=payload)
                 if response.status_code not in (200, 201):
-                    logger.error("[ANALYSIS PERSISTENCE] upload_insert=FAILED user_id=%s upload_id=%s error=%s", user_id, upload_id, response.text[:500])
-                    raise RuntimeError(f"Supabase upload record failed ({response.status_code}): {response.text[:500]}")
-            logger.info("[ANALYSIS PERSISTENCE] upload_insert=SUCCESS user_id=%s upload_id=%s", user_id, upload_id)
+                    logger.error("[ANALYSIS PERSISTENCE] upload_insert=FAILED; using local persistence user_id=%s upload_id=%s error=%s", user_id, upload_id, response.text[:500])
+                else:
+                    logger.info("[ANALYSIS PERSISTENCE] upload_insert=SUCCESS user_id=%s upload_id=%s", user_id, upload_id)
+            except httpx.HTTPError as error:
+                logger.error("[ANALYSIS PERSISTENCE] upload_insert=FAILED; using local persistence user_id=%s upload_id=%s error=%s", user_id, upload_id, error)
 
         with sqlite3.connect(LOCAL_DB_PATH) as conn:
             conn.execute(
