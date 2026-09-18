@@ -43,11 +43,11 @@ class HolisticParameterCurveFittingCNN(nn.Module):
         self.layer1 = NonLinearCurveResidualBlock(64)
         self.transition = nn.Conv2d(64, 128, 1, bias=False)
         self.layer2 = NonLinearCurveResidualBlock(128)
-        self.classifier = nn.Sequential(nn.Flatten(), nn.Linear(128 * 4 * 4, 2048), nn.ReLU(inplace=True), nn.Dropout(0.5), nn.Linear(2048, 2))
+        self.classifier = nn.Sequential(nn.Flatten(), nn.Linear(128 * 8 * 8, 512), nn.ReLU(inplace=True), nn.Dropout(0.5), nn.Linear(512, 2))
 
     def forward(self, inputs: Tensor) -> Tensor:
         outputs = self.layer2(self.transition(self.layer1(self.init_block(inputs))))
-        return self.classifier(functional.adaptive_avg_pool2d(outputs, (4, 4)))
+        return self.classifier(functional.adaptive_avg_pool2d(outputs, (8, 8)))
 
 
 def _normalize_feature_plane(values: np.ndarray) -> np.ndarray:

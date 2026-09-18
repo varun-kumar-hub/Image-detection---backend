@@ -57,10 +57,10 @@ class HolisticParameterCurveFittingCNN(nn.Module):
         self.layer2 = NonLinearCurveResidualBlock(128)
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(128 * 4 * 4, 2048),
+            nn.Linear(128 * 8 * 8, 512),
             nn.ReLU(inplace=True),
             nn.Dropout(p=0.5),
-            nn.Linear(2048, 2),
+            nn.Linear(512, 2),
         )
 
     def forward(self, inputs: Tensor) -> Tensor:
@@ -68,7 +68,7 @@ class HolisticParameterCurveFittingCNN(nn.Module):
         outputs = self.layer1(outputs)
         outputs = self.transition(outputs)
         outputs = self.layer2(outputs)
-        outputs = functional.adaptive_avg_pool2d(outputs, output_size=(4, 4))
+        outputs = functional.adaptive_avg_pool2d(outputs, output_size=(8, 8))
         return self.classifier(outputs)
 
 
