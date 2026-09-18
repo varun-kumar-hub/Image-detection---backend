@@ -14,6 +14,6 @@ async def health_check():
     return HealthResponse(
         status="healthy",
         model_loaded=predictor_service.is_loaded(),
-        model_version=settings.MODEL_VERSION,
+        model_version=predictor_service.model_version,
         supported_formats=settings.ALLOWED_EXTENSIONS
     )

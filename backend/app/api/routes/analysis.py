@@ -9,6 +9,7 @@ import time
 import asyncio
 import io
 import uuid
+import logging
 from datetime import datetime
 from PIL import Image
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, status
@@ -27,6 +28,7 @@ from backend.app.core.config import settings
 from backend.app.api.routes.settings import fetch_backup_settings, save_backup_evaluation
 
 router = APIRouter(prefix="", tags=["Analysis"])
+logger = logging.getLogger(__name__)
 
 def generate_analysis_id() -> str:
     date_str = datetime.utcnow().strftime("%Y-%m-%d")
@@ -70,10 +72,16 @@ async def analyze_image(
     # 3. Model Prediction (COMPLETELY INDEPENDENT OF GROUND TRUTH)
     # The ground truth is NEVER sent into the model or used to influence prediction.
     print(f"[Analyze] Starting prediction for {orig_filename}", flush=True)
-    prediction = await predictor_service.predict(image_bytes)
-    print("[Analyze] Prediction complete", flush=True)
-    feature_analysis = await predictor_service.feature_analysis(image_bytes)
-    print("[Analyze] Feature representation analysis complete", flush=True)
+    try:
+        prediction = await predictor_service.predict(image_bytes)
+        print("[Analyze] Prediction complete", flush=True)
+        feature_analysis = await predictor_service.feature_analysis(image_bytes)
+        print("[Analyze] Feature representation analysis complete", flush=True)
+    except RuntimeError as error:
+        logger.exception("Model inference is unavailable")
+        raise HTTPException(status_code=503, detail={"code": "MODEL_UNAVAILABLE", "message": "The image classification model is temporarily unavailable. Please retry shortly."}) from error
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail={"code": "INVALID_IMAGE", "message": str(error)}) from error
 
     # 4. Supporting Image Analysis (EXIF, ELA, Noise)
     supporting_analysis = await asyncio.to_thread(image_analysis_service.analyze_image, pil_image)

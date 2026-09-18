@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # ML Model Configuration
     MODEL_PATH: str = "models/custom_fused_parameter_model.pth"
     ENABLE_GRADCAM: bool = False
-    MODEL_VERSION: str = "v1.0"
+    MODEL_VERSION: str = "custom-fused-parameter-v1"
     CONFIDENCE_HIGH_THRESHOLD: float = 0.90
     CONFIDENCE_MEDIUM_THRESHOLD: float = 0.70
 

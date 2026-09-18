@@ -88,8 +88,14 @@ def extract_seven_channel_features(raw_image_bytes: bytes) -> np.ndarray:
 class PredictorService:
     def __init__(self, model_path: str | Path = "models/custom_fused_parameter_model.pth") -> None:
         project_root = Path(__file__).resolve().parents[3]
+        default_model_path = project_root / "models" / "custom_fused_parameter_model.pth"
         path = Path(model_path)
-        self.model_path = path if path.is_absolute() else project_root / path
+        configured_model_path = path if path.is_absolute() else project_root / path
+        if not configured_model_path.is_file() and default_model_path.is_file():
+            logger.warning("Configured MODEL_PATH is unavailable (%s); using %s", configured_model_path, default_model_path)
+            self.model_path = default_model_path
+        else:
+            self.model_path = configured_model_path
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model: HolisticParameterCurveFittingCNN | None = None
         self.model_name = "HolisticParameterCurveFittingCNN"
