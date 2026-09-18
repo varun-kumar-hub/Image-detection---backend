@@ -87,9 +87,9 @@ def extract_seven_channel_features(raw_image_bytes: bytes) -> np.ndarray:
 
 class PredictorService:
     def __init__(self, model_path: str | Path = "models/custom_fused_parameter_model.pth") -> None:
-        backend_root = Path(__file__).resolve().parents[2]
+        project_root = Path(__file__).resolve().parents[3]
         path = Path(model_path)
-        self.model_path = path if path.is_absolute() else backend_root / path
+        self.model_path = path if path.is_absolute() else project_root / path
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model: HolisticParameterCurveFittingCNN | None = None
         self.model_name = "HolisticParameterCurveFittingCNN"
