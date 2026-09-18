@@ -70,8 +70,10 @@ async def analyze_image(
     # 3. Model Prediction (COMPLETELY INDEPENDENT OF GROUND TRUTH)
     # The ground truth is NEVER sent into the model or used to influence prediction.
     print(f"[Analyze] Starting prediction for {orig_filename}", flush=True)
-    prediction = await asyncio.to_thread(predictor_service.predict, pil_image)
+    prediction = await predictor_service.predict(image_bytes)
     print("[Analyze] Prediction complete", flush=True)
+    feature_analysis = await predictor_service.feature_analysis(image_bytes)
+    print("[Analyze] Feature representation analysis complete", flush=True)
 
     # 4. Supporting Image Analysis (EXIF, ELA, Noise)
     supporting_analysis = await asyncio.to_thread(image_analysis_service.analyze_image, pil_image)
@@ -79,7 +81,7 @@ async def analyze_image(
 
     # 5. Model Explainability (Grad-CAM)
     if settings.ENABLE_GRADCAM:
-        gradcam_result = await asyncio.to_thread(predictor_service.explain, pil_image)
+        gradcam_result = await predictor_service.explain(image_bytes)
         print("[Analyze] Grad-CAM complete", flush=True)
     else:
         gradcam_result = {
@@ -144,10 +146,10 @@ async def analyze_image(
 
     # 9. Build Structured, Evidence-Based Explanation
     structured_explanation = explanation_service.generate_explanation(
-        classification=prediction.classification,
-        ai_probability=prediction.ai_probability,
-        real_probability=prediction.real_probability,
-        confidence=prediction.confidence,
+        classification=prediction["classification"],
+        ai_probability=prediction["ai_probability"],
+        real_probability=prediction["real_probability"],
+        confidence=prediction["confidence"],
         supporting_details=supporting_analysis.details or {},
         has_gradcam=has_gradcam
     )
@@ -159,9 +161,9 @@ async def analyze_image(
     is_evaluation = bool(norm_gt in ("real", "ai_generated"))
     is_correct = None
     if is_evaluation:
-        is_correct = (prediction.classification == ("real" if norm_gt == "authentic" else "ai_generated"))
+        is_correct = (prediction["classification"] == ("real" if norm_gt == "authentic" else "ai_generated"))
         try:
-            await save_backup_evaluation(analysis_id, user_id, norm_gt, prediction.classification, prediction.ai_probability if norm_gt == "ai_generated" else prediction.real_probability)
+            await save_backup_evaluation(analysis_id, user_id, norm_gt, prediction["classification"], prediction["ai_probability"] if norm_gt == "ai_generated" else prediction["real_probability"])
         except Exception as exc:
             print(f"[BackupMode] Evaluation save skipped: {exc}", flush=True)
 
@@ -171,11 +173,11 @@ async def analyze_image(
         "user_id": user_id,
         "storage_path": storage_path,
         "filename": orig_filename,
-        "classification": prediction.classification,
-        "ai_probability": prediction.ai_probability,
-        "real_probability": prediction.real_probability,
-        "confidence": prediction.confidence,
-        "confidence_explanation": prediction.confidence_explanation,
+        "classification": prediction["classification"],
+        "ai_probability": prediction["ai_probability"],
+        "real_probability": prediction["real_probability"],
+        "confidence": prediction["confidence"],
+        "confidence_explanation": prediction["confidence_explanation"],
         "interpretation": structured_explanation["summary"],
         "disclaimer": "AI image detection is probabilistic. Learned representations provide supporting evidence, not absolute proof.",
         "processing_time_ms": processing_time_ms,
@@ -186,6 +188,7 @@ async def analyze_image(
         "manipulation": supporting_analysis.model_dump(),
         "explanation": structured_explanation,
         "gradcam": gradcam_result,
+        "feature_analysis": feature_analysis,
         "image_url": signed_image_url,
         "ground_truth": norm_gt,
         "is_evaluation": is_evaluation,

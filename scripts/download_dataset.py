@@ -1,15 +1,16 @@
-import os
-import sys
-
-# Ensure downloads go to D: drive where there is 120GB free space
-os.environ["KAGGLEHUB_CACHE"] = r"D:\kaggle_cache"
-
+"""Download CIFAKE to the configurable local dataset root using KaggleHub."""
+from pathlib import Path
+import argparse
+import shutil
 import kagglehub
 
-print("Connecting to Kaggle to download dataset: shivamardeshna/real-and-fake-images-dataset-for-image-forensics ...")
-try:
-    path = kagglehub.dataset_download("shivamardeshna/real-and-fake-images-dataset-for-image-forensics")
-    print(f"SUCCESS: Dataset downloaded to: {path}")
-except Exception as e:
-    print(f"ERROR downloading dataset: {e}", file=sys.stderr)
-    sys.exit(1)
+parser = argparse.ArgumentParser()
+parser.add_argument("--destination", default="data/datasets/cifake/raw")
+args = parser.parse_args()
+source = Path(kagglehub.dataset_download("birdy654/cifake-real-and-ai-generated-synthetic-images"))
+destination = Path(args.destination).resolve()
+destination.parent.mkdir(parents=True, exist_ok=True)
+if destination.exists() and any(destination.iterdir()):
+    raise SystemExit(f"Destination already contains files: {destination}. Choose an empty destination.")
+shutil.copytree(source, destination, dirs_exist_ok=True)
+print(f"CIFAKE downloaded to {destination}")

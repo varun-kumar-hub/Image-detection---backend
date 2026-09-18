@@ -46,8 +46,8 @@ env/
 *.sqlite3
 *.db
 
-# Local uploads and generated dataset files
-data/data/
+# Local uploads and downloaded datasets
+data/datasets/
 data/storage/
 
 # Pytest & coverage

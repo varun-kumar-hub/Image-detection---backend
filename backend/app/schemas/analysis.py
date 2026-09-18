@@ -46,6 +46,7 @@ class AnalysisResponse(BaseModel):
     manipulation: Optional[ManipulationAnalysisResult] = None
     explanation: Optional[Dict[str, Any]] = None
     gradcam: Optional[Dict[str, Any]] = None
+    feature_analysis: Optional[Dict[str, Any]] = None
     image_url: Optional[str] = None
     ground_truth: Optional[str] = None
     is_evaluation: Optional[bool] = False

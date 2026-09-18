@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-2.5-flash"
 
     # ML Model Configuration
-    MODEL_PATH: str = "models/image_detection_v1.keras"
+    MODEL_PATH: str = "models/custom_fused_parameter_model.pth"
     ENABLE_GRADCAM: bool = False
     MODEL_VERSION: str = "v1.0"
     CONFIDENCE_HIGH_THRESHOLD: float = 0.90

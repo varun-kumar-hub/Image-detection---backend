@@ -52,9 +52,10 @@ def build_efficientnet_model(
 
     model = models.Model(inputs=inputs, outputs=outputs, name=f"ImageGuard_EfficientNet{variant}")
 
-    # Compile with binary cross-entropy and tracking metrics
+    # EfficientNetB0 owns ImageNet-compatible normalization internally. Inputs
+    # therefore remain RGB float32 pixels in the [0, 255] range.
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+        optimizer=tf.keras.optimizers.AdamW(learning_rate=learning_rate, weight_decay=1e-5),
         loss="binary_crossentropy",
         metrics=[
             "accuracy",

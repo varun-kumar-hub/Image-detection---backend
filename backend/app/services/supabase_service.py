@@ -43,6 +43,7 @@ class DatabaseService:
                     image_info TEXT,
                     manipulation TEXT,
                     explanation TEXT,
+                    feature_analysis TEXT,
                     created_at TEXT
                 )
             """)
@@ -68,6 +69,8 @@ class DatabaseService:
                 conn.execute("ALTER TABLE analysis_records ADD COLUMN filename TEXT")
             if "explanation" not in cols:
                 conn.execute("ALTER TABLE analysis_records ADD COLUMN explanation TEXT")
+            if "feature_analysis" not in cols:
+                conn.execute("ALTER TABLE analysis_records ADD COLUMN feature_analysis TEXT")
             if "ground_truth" not in cols:
                 conn.execute("ALTER TABLE analysis_records ADD COLUMN ground_truth TEXT")
             if "is_evaluation" not in cols:
@@ -111,7 +114,8 @@ class DatabaseService:
                 "image_info": record.get("image_info", {}),
                 "manipulation": record.get("manipulation", {}),
                 "explanation": record.get("explanation", {}),
-                "gradcam": record.get("gradcam", {}),
+            "gradcam": record.get("gradcam", {}),
+                "feature_analysis": record.get("feature_analysis", {}),
             }
             try:
                 import uuid as _uuid
@@ -163,8 +167,8 @@ class DatabaseService:
                 INSERT OR REPLACE INTO analysis_records (
                     id, upload_id, user_id, storage_path, filename, classification, ai_probability, real_probability,
                     confidence, confidence_explanation, processing_time_ms, model_name,
-                    model_version, image_info, manipulation, explanation, ground_truth, is_evaluation, is_correct, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    model_version, image_info, manipulation, explanation, feature_analysis, ground_truth, is_evaluation, is_correct, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 record["id"],
                 record.get("upload_id", ""),
@@ -182,6 +186,7 @@ class DatabaseService:
                 json.dumps(record.get("image_info", {})),
                 json.dumps(record.get("manipulation", {})),
                 json.dumps(record.get("explanation", {})),
+                json.dumps(record.get("feature_analysis", {})),
                 record.get("ground_truth"),
                 1 if record.get("is_evaluation") else 0,
                 1 if record.get("is_correct") is True else 0 if record.get("is_correct") is False else None,
@@ -251,6 +256,7 @@ class DatabaseService:
             data["image_info"] = json.loads(data["image_info"]) if data.get("image_info") else {}
             data["manipulation"] = json.loads(data["manipulation"]) if data.get("manipulation") else {}
             data["explanation"] = json.loads(data["explanation"]) if data.get("explanation") else {}
+            data["feature_analysis"] = json.loads(data["feature_analysis"]) if data.get("feature_analysis") else {}
             data["is_evaluation"] = bool(data.get("is_evaluation"))
             data["is_correct"] = True if data.get("is_correct") == 1 else False if data.get("is_correct") == 0 else None
             return data
@@ -285,7 +291,9 @@ class DatabaseService:
                 "image_info": row.get("image_info") or {},
                 "manipulation": row.get("manipulation") or {},
                 "explanation": row.get("explanation") or {},
-                "gradcam": row.get("gradcam") or {},
+                "feature_analysis": row.get("feature_analysis") or {},
+            "gradcam": row.get("gradcam") or {},
+                "feature_analysis": row.get("feature_analysis") or {},
                 "is_evaluation": False,
                 "is_correct": None,
             }
@@ -331,6 +339,7 @@ class DatabaseService:
                             "image_info": {"filename": row.get("filename", "image.jpg")},
                             "manipulation": {},
                             "explanation": {},
+                            "feature_analysis": row.get("feature_analysis") or {},
                             "is_evaluation": False,
                             "is_correct": None,
                         })
@@ -379,6 +388,7 @@ class DatabaseService:
                 item["image_info"] = json.loads(item["image_info"]) if item.get("image_info") else {}
                 item["manipulation"] = json.loads(item["manipulation"]) if item.get("manipulation") else {}
                 item["explanation"] = json.loads(item["explanation"]) if item.get("explanation") else {}
+                item["feature_analysis"] = json.loads(item["feature_analysis"]) if item.get("feature_analysis") else {}
                 item["is_evaluation"] = bool(item.get("is_evaluation"))
                 item["is_correct"] = True if item.get("is_correct") == 1 else False if item.get("is_correct") == 0 else None
                 records.append(item)

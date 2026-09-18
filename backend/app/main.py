@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="AI-powered image authenticity and manipulation detection platform.",
+    description="AI-generated image detection platform: REAL IMAGE versus AI-GENERATED IMAGE.",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc"
